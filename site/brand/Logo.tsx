@@ -1,6 +1,6 @@
-// 站点的字标和圆环标记：页面用 Wordmark 画标志和站名（size 是高度，单位像素），RingMark 是小标记，转起来就是加载动画。
-// 标志是一只眼睛（观察）里的一根红色 K 线（券商）；颜色取主题的强调色和热点色，深浅色主题下自动跟着变。
+// 观察镜头与行业数据柱：页面和静态品牌资源共用同一份图形。
 import { SITE } from "../site.ts";
+import { BRAND_MARK } from "./mark.ts";
 
 export function Wordmark({ size = 24, className = "", title = SITE.name }: { size?: number; className?: string; title?: string }) {
   // 站名较长时按字数缩小字号，让标志加站名在侧栏和手机顶栏里放得下、不换行。
@@ -8,10 +8,12 @@ export function Wordmark({ size = 24, className = "", title = SITE.name }: { siz
   const fontSize = Math.round(size * Math.min(0.92, 5.5 / em));
   return (
     <span className={`inline-flex items-center whitespace-nowrap font-black leading-none tracking-[-0.03em] ${className}`} style={{ fontSize }} aria-label={title} role="img">
-      <svg aria-hidden="true" focusable="false" viewBox="46 114 420 284" className="mr-[0.3em] h-[0.82em] w-auto shrink-0">
-        <path d="M60 256C116 168 188 128 256 128S396 168 452 256C396 344 324 384 256 384S116 344 60 256Z" fill="none" strokeWidth="30" strokeLinejoin="round" style={{ stroke: "var(--accent)" }} />
-        <path d="M256 168V344" fill="none" strokeWidth="20" strokeLinecap="round" style={{ stroke: "var(--hot)" }} />
-        <rect x="214" y="204" width="84" height="110" rx="14" style={{ fill: "var(--hot)" }} />
+      <svg aria-hidden="true" focusable="false" viewBox="72 72 368 368" className="mr-[0.3em] h-[1.15em] w-auto shrink-0">
+        <path d={BRAND_MARK.ring} fill="none" strokeWidth="28" strokeLinecap="round" style={{ stroke: "var(--accent)" }} />
+        <circle {...BRAND_MARK.dot} style={{ fill: "var(--hot)" }} />
+        {BRAND_MARK.bars.map((bar, i) => (
+          <rect key={bar.x} {...bar} style={{ fill: i === 2 ? "var(--hot)" : "var(--accent)" }} />
+        ))}
       </svg>
       <span aria-hidden="true">{SITE.name}</span>
     </span>
