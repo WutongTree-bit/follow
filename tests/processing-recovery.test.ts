@@ -33,8 +33,8 @@ const provider = await stub(async (_hit, request) => {
   }
   const content = step === "prefilter" ? { label: original ? "BLOCK" : "PASS", reason: "local fixture" }
     : step === "score" ? { attentionScore: SELECTING_SCORE }
-    : step === "structure" ? { category: "ai-models", tags: [], subjects: [], fact: null }
-    : { itemType: "model_release", authorRole: "principal", tags: ["模型发布"], editorialJudgment: "模型能力提升", titleZh: `新判断 ${T}`, summaryZh: "模型发布并提供评测和价格。" };
+    : step === "structure" ? { category: "mna", tags: [], subjects: [], fact: null }
+    : { itemType: "corporate_action", authorRole: "principal", tags: ["并购重组"], editorialJudgment: "并购进展明确", titleZh: `新判断 ${T}`, summaryZh: "券商公告吸收合并并披露换股比例和审批进展。" };
   return { choices: [{ message: { content: JSON.stringify(content) } }] };
 });
 pointModels(provider.url);
@@ -49,8 +49,8 @@ afterEach(async () => {
 });
 
 async function article(name: string) {
-  return (await upsertMaterial({ sourceId: SOURCE, url: `https://example.org/${T}/${name}`, title: `AI model ${T} ${name}`,
-    bodyText: `AI lab release ${T} ${name}. ` + "The new model includes benchmark and price details. ".repeat(12),
+  return (await upsertMaterial({ sourceId: SOURCE, url: `https://example.org/${T}/${name}`,   title: `Broker merger ${T} ${name}`,
+      bodyText: `Broker announcement ${T} ${name}. ` + "The merger includes exchange ratio and approval details. ".repeat(12),
     bodyStatus: "ok", via: "fetch", backfill: "test fixture", publishedAt: new Date() })).articleId;
 }
 

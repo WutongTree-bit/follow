@@ -1,370 +1,679 @@
 {
-  "$comment": "示范信源：首次启动时导入（scripts/seed.ts），已存在的不会被覆盖。之后在后台“信源”里新建、修改和暂停。字段说明见 docs/customize.md。",
+  "$comment": "示范信源：首次启动时导入（scripts/seed.ts），已存在的不会被覆盖。之后在后台“信源”里新建、修改和暂停。字段说明见 docs/customize.md。mp-* 公众号信源需要极致了的 DAJIALA_KEY 和各号的 ghid，确认后在后台启用。",
   "sources": [
     {
-      "id": "rss-openai-news",
-      "name": "OpenAI News",
-      "kind": "rss",
+      "id": "web-csrc-yaowen",
+      "name": "证监会 · 要闻",
+      "kind": "json_list",
       "config": {
-        "feedUrl": "https://openai.com/news/rss.xml",
-        "_aihot": {
-          "initialBackfillLimit": 8
-        }
+        "url": "https://www.csrc.gov.cn/searchList/a1a078ee0bc54721ab6b148884c784a8?_isAgg=true&_isJson=true&_pageSize=20&_template=index&_rangeTimeGte=&_channelName=&page=1",
+        "mode": "json_api",
+        "headers": { "Referer": "https://www.csrc.gov.cn/csrc/c100028/common_xq_list.shtml" },
+        "itemsPath": "data.results",
+        "titlePaths": ["title"],
+        "summaryPaths": ["memo"],
+        "publishedAtPath": "publishedTime",
+        "publishedAtUnit": "epoch_ms",
+        "externalIdPath": "manuscriptId",
+        "urlTemplate": "https:{raw:url}",
+        "_aihot": { "initialBackfillLimit": 8 }
       },
       "tier": "T1",
-      "owner_entity_id": "openai",
+      "participation_mode": "editorial",
+      "interval_minutes": 30,
+      "tags": ["官方", "监管"],
+      "site_fulltext": false,
+      "syndicate_fulltext": false
+    },
+    {
+      "id": "web-csrc-xiaqu",
+      "name": "证监会 · 辖区监管动态",
+      "kind": "json_list",
+      "config": {
+        "url": "https://www.csrc.gov.cn/searchList/625e0ed8a45842c28751458bfcacb422?_isAgg=true&_isJson=true&_pageSize=20&_template=index&_rangeTimeGte=&_channelName=&page=1",
+        "mode": "json_api",
+        "headers": { "Referer": "https://www.csrc.gov.cn/csrc/c100030/common_xq_list.shtml" },
+        "itemsPath": "data.results",
+        "titlePaths": ["title"],
+        "summaryPaths": ["memo"],
+        "publishedAtPath": "publishedTime",
+        "publishedAtUnit": "epoch_ms",
+        "externalIdPath": "manuscriptId",
+        "urlTemplate": "https:{raw:url}",
+        "_aihot": { "initialBackfillLimit": 8 }
+      },
+      "tier": "T1",
+      "participation_mode": "editorial",
+      "interval_minutes": 30,
+      "tags": ["官方", "监管"],
+      "site_fulltext": false,
+      "syndicate_fulltext": false
+    },
+    {
+      "id": "web-csrc-cuoshi",
+      "name": "证监会 · 监管措施",
+      "kind": "json_list",
+      "config": {
+        "url": "https://www.csrc.gov.cn/searchList/212665889d144f0392445f47661ca98e?_isAgg=true&_isJson=true&_pageSize=20&_template=index&_rangeTimeGte=&_channelName=&page=1",
+        "mode": "json_api",
+        "headers": { "Referer": "https://www.csrc.gov.cn/csrc/c100044/tz.shtml" },
+        "itemsPath": "data.results",
+        "titlePaths": ["title"],
+        "summaryPaths": ["memo"],
+        "publishedAtPath": "publishedTime",
+        "publishedAtUnit": "epoch_ms",
+        "externalIdPath": "manuscriptId",
+        "urlTemplate": "https:{raw:url}",
+        "_aihot": { "initialBackfillLimit": 8 }
+      },
+      "tier": "T1",
+      "participation_mode": "editorial",
+      "interval_minutes": 30,
+      "tags": ["官方", "监管"],
+      "site_fulltext": false,
+      "syndicate_fulltext": false
+    },
+    {
+      "id": "web-csrc-jiedu",
+      "name": "证监会 · 政策解读",
+      "kind": "json_list",
+      "config": {
+        "url": "https://www.csrc.gov.cn/searchList/cb16a6a50e134294a3e59df17fa960e3?_isAgg=true&_isJson=true&_pageSize=20&_template=index&_rangeTimeGte=&_channelName=&page=1",
+        "mode": "json_api",
+        "headers": { "Referer": "https://www.csrc.gov.cn/csrc/c100039/common_list.shtml" },
+        "itemsPath": "data.results",
+        "titlePaths": ["title"],
+        "summaryPaths": ["memo"],
+        "publishedAtPath": "publishedTime",
+        "publishedAtUnit": "epoch_ms",
+        "externalIdPath": "manuscriptId",
+        "urlTemplate": "https:{raw:url}",
+        "_aihot": { "initialBackfillLimit": 8 }
+      },
+      "tier": "T1",
       "participation_mode": "editorial",
       "interval_minutes": 120,
-      "tags": [
-        "官方"
-      ],
+      "tags": ["官方", "监管"],
       "site_fulltext": false,
       "syndicate_fulltext": false
     },
     {
-      "id": "rss-google-deepmind",
-      "name": "Google DeepMind",
-      "kind": "rss",
+      "id": "web-sse-yaowen",
+      "name": "上交所 · 要闻",
+      "kind": "web_list",
       "config": {
-        "feedUrl": "https://deepmind.google/blog/rss.xml",
-        "_aihot": {
-          "initialBackfillLimit": 8
-        }
+        "url": "https://www.sse.com.cn/aboutus/mediacenter/hotandd/",
+        "parseMode": "html",
+        "itemSelector": ".sse_list_1 dl dd",
+        "linkSelector": "a",
+        "titleSelector": "a",
+        "publishedAtSelector": "span",
+        "allowUrlPrefixes": ["https://www.sse.com.cn/aboutus/mediacenter/hotandd/"],
+        "_aihot": { "initialBackfillLimit": 8 }
       },
       "tier": "T1",
-      "owner_entity_id": "google",
-      "participation_mode": "editorial",
-      "interval_minutes": 120,
-      "tags": [
-        "官方"
-      ],
-      "site_fulltext": false,
-      "syndicate_fulltext": false
-    },
-    {
-      "id": "rss-google-research",
-      "name": "Google Research",
-      "kind": "rss",
-      "config": {
-        "feedUrl": "https://research.google/blog/rss/",
-        "_aihot": {
-          "initialBackfillLimit": 8
-        }
-      },
-      "tier": "T1",
-      "owner_entity_id": "google",
-      "participation_mode": "editorial",
-      "interval_minutes": 120,
-      "tags": [
-        "官方",
-        "研究"
-      ],
-      "site_fulltext": false,
-      "syndicate_fulltext": false
-    },
-    {
-      "id": "rss-hugging-face",
-      "name": "Hugging Face Blog",
-      "kind": "rss",
-      "config": {
-        "feedUrl": "https://huggingface.co/blog/feed.xml",
-        "_aihot": {
-          "initialBackfillLimit": 8
-        }
-      },
-      "tier": "T1",
-      "owner_entity_id": "hugging-face",
-      "participation_mode": "editorial",
-      "interval_minutes": 120,
-      "tags": [
-        "官方",
-        "开源"
-      ],
-      "site_fulltext": false,
-      "syndicate_fulltext": false
-    },
-    {
-      "id": "rss-microsoft-research",
-      "name": "Microsoft Research",
-      "kind": "rss",
-      "config": {
-        "feedUrl": "https://www.microsoft.com/en-us/research/feed/",
-        "_aihot": {
-          "initialBackfillLimit": 8
-        }
-      },
-      "tier": "T1",
-      "owner_entity_id": "microsoft",
-      "participation_mode": "editorial",
-      "interval_minutes": 120,
-      "tags": [
-        "官方",
-        "研究"
-      ],
-      "site_fulltext": false,
-      "syndicate_fulltext": false
-    },
-    {
-      "id": "rss-nvidia-blog",
-      "name": "NVIDIA Blog",
-      "kind": "rss",
-      "config": {
-        "feedUrl": "https://blogs.nvidia.com/feed/",
-        "_aihot": {
-          "initialBackfillLimit": 8
-        }
-      },
-      "tier": "T1",
-      "owner_entity_id": "nvidia",
-      "participation_mode": "editorial",
-      "interval_minutes": 120,
-      "tags": [
-        "官方"
-      ],
-      "site_fulltext": false,
-      "syndicate_fulltext": false
-    },
-    {
-      "id": "rss-aws-ml",
-      "name": "AWS Machine Learning Blog",
-      "kind": "rss",
-      "config": {
-        "feedUrl": "https://aws.amazon.com/blogs/machine-learning/feed/",
-        "_aihot": {
-          "initialBackfillLimit": 8
-        }
-      },
-      "tier": "T1",
-      "owner_entity_id": null,
-      "participation_mode": "editorial",
-      "interval_minutes": 120,
-      "tags": [
-        "官方",
-        "教程"
-      ],
-      "site_fulltext": false,
-      "syndicate_fulltext": false
-    },
-    {
-      "id": "rss-github-ai",
-      "name": "GitHub Blog · AI & ML",
-      "kind": "rss",
-      "config": {
-        "feedUrl": "https://github.blog/ai-and-ml/feed/",
-        "_aihot": {
-          "initialBackfillLimit": 8
-        }
-      },
-      "tier": "T1",
-      "owner_entity_id": null,
-      "participation_mode": "editorial",
-      "interval_minutes": 120,
-      "tags": [
-        "官方"
-      ],
-      "site_fulltext": false,
-      "syndicate_fulltext": false
-    },
-    {
-      "id": "rss-mistral",
-      "name": "Mistral AI",
-      "kind": "rss",
-      "config": {
-        "feedUrl": "https://mistral.ai/news/rss",
-        "_aihot": {
-          "initialBackfillLimit": 8
-        }
-      },
-      "tier": "T1",
-      "owner_entity_id": null,
-      "participation_mode": "editorial",
-      "interval_minutes": 120,
-      "tags": [
-        "官方"
-      ],
-      "site_fulltext": false,
-      "syndicate_fulltext": false
-    },
-    {
-      "id": "rss-bair",
-      "name": "Berkeley AI Research",
-      "kind": "rss",
-      "config": {
-        "feedUrl": "https://bair.berkeley.edu/blog/feed.xml",
-        "_aihot": {
-          "initialBackfillLimit": 8
-        }
-      },
-      "tier": "T1",
-      "owner_entity_id": null,
-      "participation_mode": "editorial",
-      "interval_minutes": 180,
-      "tags": [
-        "研究"
-      ],
-      "site_fulltext": false,
-      "syndicate_fulltext": false
-    },
-    {
-      "id": "rss-the-verge-ai",
-      "name": "The Verge · AI",
-      "kind": "rss",
-      "config": {
-        "feedUrl": "https://www.theverge.com/rss/ai-artificial-intelligence/index.xml",
-        "_aihot": {
-          "initialBackfillLimit": 8
-        }
-      },
-      "tier": "T2",
-      "owner_entity_id": null,
       "participation_mode": "editorial",
       "interval_minutes": 60,
-      "tags": [
-        "媒体"
-      ],
+      "tags": ["官方", "监管"],
       "site_fulltext": false,
       "syndicate_fulltext": false
     },
     {
-      "id": "rss-techcrunch-ai",
-      "name": "TechCrunch · AI",
-      "kind": "rss",
+      "id": "web-szse-news",
+      "name": "深交所 · 要闻动态",
+      "kind": "json_list",
       "config": {
-        "feedUrl": "https://techcrunch.com/category/artificial-intelligence/feed/",
-        "_aihot": {
-          "initialBackfillLimit": 8
-        }
+        "url": "https://www.szse.cn/aboutus/trends/news/index.json",
+        "mode": "json_api",
+        "headers": { "Referer": "https://www.szse.cn/aboutus/trends/news/index.html" },
+        "itemsPath": "data",
+        "titlePaths": ["title"],
+        "summaryPaths": ["docAbstract"],
+        "publishedAtPath": "pubTime",
+        "publishedAtUnit": "epoch_ms",
+        "externalIdPath": "url",
+        "urlTemplate": "https://www.szse.cn{raw:url}",
+        "_aihot": { "initialBackfillLimit": 8 }
       },
-      "tier": "T2",
-      "owner_entity_id": null,
+      "tier": "T1",
       "participation_mode": "editorial",
       "interval_minutes": 60,
-      "tags": [
-        "媒体"
-      ],
+      "tags": ["官方", "监管"],
       "site_fulltext": false,
       "syndicate_fulltext": false
     },
     {
-      "id": "rss-ars-technica-ai",
-      "name": "Ars Technica · AI",
-      "kind": "rss",
+      "id": "web-sac-gzdt",
+      "name": "中证协 · 协会工作动态",
+      "kind": "web_list",
       "config": {
-        "feedUrl": "https://arstechnica.com/ai/feed/",
-        "_aihot": {
-          "initialBackfillLimit": 8
-        }
+        "url": "https://www.sac.net.cn/xxgk/xhxx/gzdt/",
+        "parseMode": "html",
+        "itemSelector": ".list_content ul li",
+        "linkSelector": "a",
+        "titleSelector": "span:not(.time)",
+        "publishedAtSelector": "span.time",
+        "allowUrlPrefixes": ["https://www.sac.net.cn/xxgk/xhxx/gzdt/"],
+        "_aihot": { "initialBackfillLimit": 8 }
       },
-      "tier": "T2",
-      "owner_entity_id": null,
-      "participation_mode": "editorial",
-      "interval_minutes": 60,
-      "tags": [
-        "媒体"
-      ],
-      "site_fulltext": false,
-      "syndicate_fulltext": false
-    },
-    {
-      "id": "rss-mit-tech-review-ai",
-      "name": "MIT Technology Review · AI",
-      "kind": "rss",
-      "config": {
-        "feedUrl": "https://www.technologyreview.com/topic/artificial-intelligence/feed",
-        "_aihot": {
-          "initialBackfillLimit": 8
-        }
-      },
-      "tier": "T2",
-      "owner_entity_id": null,
+      "tier": "T1",
       "participation_mode": "editorial",
       "interval_minutes": 120,
-      "tags": [
-        "媒体"
-      ],
+      "tags": ["官方", "自律"],
       "site_fulltext": false,
       "syndicate_fulltext": false
     },
     {
-      "id": "rss-the-decoder",
-      "name": "The Decoder",
-      "kind": "rss",
+      "id": "web-sac-zlgz",
+      "name": "中证协 · 自律规则",
+      "kind": "web_list",
       "config": {
-        "feedUrl": "https://the-decoder.com/feed/",
-        "_aihot": {
-          "initialBackfillLimit": 8
-        }
+        "url": "https://www.sac.net.cn/zlgl/zlgz/",
+        "parseMode": "html",
+        "itemSelector": ".list_content ul li",
+        "linkSelector": "a",
+        "titleSelector": "span:not(.time)",
+        "publishedAtSelector": "span.time",
+        "allowUrlPrefixes": ["https://www.sac.net.cn/zlgl/zlgz/"],
+        "_aihot": { "initialBackfillLimit": 8 }
       },
-      "tier": "T2",
-      "owner_entity_id": null,
-      "participation_mode": "editorial",
-      "interval_minutes": 60,
-      "tags": [
-        "媒体"
-      ],
-      "site_fulltext": false,
-      "syndicate_fulltext": false
-    },
-    {
-      "id": "rss-simon-willison",
-      "name": "Simon Willison",
-      "kind": "rss",
-      "config": {
-        "feedUrl": "https://simonwillison.net/atom/everything/",
-        "_aihot": {
-          "initialBackfillLimit": 8
-        }
-      },
-      "tier": "T2",
-      "owner_entity_id": null,
+      "tier": "T1",
       "participation_mode": "editorial",
       "interval_minutes": 120,
-      "tags": [
-        "个人"
-      ],
+      "tags": ["官方", "自律"],
       "site_fulltext": false,
       "syndicate_fulltext": false
     },
     {
-      "id": "rss-import-ai",
-      "name": "Import AI",
-      "kind": "rss",
+      "id": "web-amac-xhyw",
+      "name": "中基协 · 协会要闻",
+      "kind": "web_list",
       "config": {
-        "feedUrl": "https://importai.substack.com/feed",
-        "_aihot": {
-          "initialBackfillLimit": 8
-        }
+        "url": "https://www.amac.org.cn/xwfb/xhyw/",
+        "parseMode": "html",
+        "itemSelector": "li:has(> i)",
+        "linkSelector": "a",
+        "titleSelector": "a",
+        "publishedAtSelector": "i",
+        "allowUrlPrefixes": ["https://www.amac.org.cn/xwfb/xhyw/"],
+        "_aihot": { "initialBackfillLimit": 8 }
       },
-      "tier": "T2",
-      "owner_entity_id": null,
+      "tier": "T1",
       "participation_mode": "editorial",
-      "interval_minutes": 180,
-      "tags": [
-        "个人",
-        "周刊"
-      ],
+      "interval_minutes": 120,
+      "tags": ["官方", "自律"],
       "site_fulltext": false,
       "syndicate_fulltext": false
     },
     {
-      "id": "rss-latent-space",
-      "name": "Latent Space",
-      "kind": "rss",
+      "id": "web-amac-tzgg",
+      "name": "中基协 · 通知公告",
+      "kind": "web_list",
       "config": {
-        "feedUrl": "https://www.latent.space/feed",
-        "_aihot": {
-          "initialBackfillLimit": 8
-        }
+        "url": "https://www.amac.org.cn/xwfb/tzgg/",
+        "parseMode": "html",
+        "itemSelector": "li:has(> i)",
+        "linkSelector": "a",
+        "titleSelector": "a",
+        "publishedAtSelector": "i",
+        "allowUrlPrefixes": ["https://www.amac.org.cn/xwfb/tzgg/"],
+        "_aihot": { "initialBackfillLimit": 8 }
       },
-      "tier": "T2",
-      "owner_entity_id": null,
+      "tier": "T1",
       "participation_mode": "editorial",
-      "interval_minutes": 180,
-      "tags": [
-        "个人"
-      ],
+      "interval_minutes": 120,
+      "tags": ["官方", "自律"],
       "site_fulltext": false,
       "syndicate_fulltext": false
+    },
+    {
+      "id": "web-chinaclear-tz",
+      "name": "中国结算 · 通知公告",
+      "kind": "web_list",
+      "config": {
+        "url": "https://www.chinaclear.cn/zdjs/xtzgg/center_flist/code_1.shtml",
+        "parseMode": "html",
+        "baseUrl": "https://www.chinaclear.cn/zdjs/xtzgg/",
+        "itemSelector": "li.item",
+        "linkSelector": "a.title",
+        "titleSelector": "a.title",
+        "publishedAtSelector": "span.date",
+        "allowUrlPrefixes": ["https://www.chinaclear.cn/zdjs/"],
+        "_aihot": { "initialBackfillLimit": 8 }
+      },
+      "tier": "T1",
+      "participation_mode": "editorial",
+      "interval_minutes": 60,
+      "tags": ["官方", "自律"],
+      "site_fulltext": false,
+      "syndicate_fulltext": false
+    },
+    {
+      "id": "web-cninfo-brokers",
+      "name": "巨潮资讯 · 上市券商公告",
+      "kind": "json_list",
+      "config": {
+        "url": "http://www.cninfo.com.cn/new/hisAnnouncement/query?pageNum=1&pageSize=100&column=szse&tabName=fulltext&plate=&stock=600030%2Cgssh0600030%3B601211%2Cqsgn0000116%3B600999%2Cqsgn0000118%3B601066%2Cqsgn0000884%3B601688%2Cqsgn0000161%3B601995%2Cqsgn0000421%3B601881%2Cqsgn0000512%3B600958%2Cqsgn0000065%3B601788%2Cqsgn0000085%3B601377%2Cqsgn0000076%3B601901%2C9900021222%3B600109%2Cgssh0600109%3B601878%2Cqsgn0000203%3B601555%2Cqsgn0000325%3B600918%2Cqsgn0000702%3B601108%2Cqsgn0000808%3B601162%2Cqsgn0000533%3B600369%2Cgssh0600369%3B600909%2Cqsgn0000505%3B601198%2C9900008427%3B601059%2C9900003683%3B601456%2Cqsgn0000343%3B000783%2Cgssz0000783%3B000776%2Cgssz0000776%3B000166%2Cqsgn0000301%3B000728%2Cgssz0000728%3B002736%2C9900004734%3B002673%2Cqsgn0000644%3B002926%2Cqsgn0000140%3B002939%2Cqsgn0000030%3B300059%2C9900010488%3B002797%2Cqsgn0000069%3B002500%2Cqsgn0000279%3B000750%2Cgssz0000750%3B000686%2Cgssz0000686%3B002945%2Cqsgn0000869%3B601136%2Cqsgn0000516%3B601990%2Cqsgn0000240%3B601375%2Cqsgn0000802%3B601236%2Cqsgn0000641%3B601696%2Cqsgn0000638%3B600906%2Cqsgn0000647%3B002670%2C9900022401%3B&searchkey=&secid=&category=&trade=&seDate=&sortName=&sortType=&isHLtitle=true",
+        "mode": "json_api",
+        "method": "POST",
+        "bodyJson": {},
+        "headers": { "Referer": "http://www.cninfo.com.cn/" },
+        "itemsPath": "announcements",
+        "titlePaths": ["announcementTitle"],
+        "urlTemplate": "http://static.cninfo.com.cn/{raw:adjunctUrl}",
+        "summaryPaths": ["secName"],
+        "summaryIsBody": true,
+        "publishedAtPath": "announcementTime",
+        "publishedAtUnit": "epoch_ms",
+        "externalIdPath": "announcementId",
+        "ingestNoiseFilter": {
+          "dropMarkersTitleOnly": ["募集说明书", "信用评级", "跟踪评级", "评级报告", "付息公告", "兑付", "摘牌", "票面利率", "簿记", "发行公告", "法律意见书", "公司章程", "章程（", "投资者关系活动记录", "业绩说明会", "权益分派", "更名公告", "回售", "受托管理", "会议通知", "会议通告", "股东会的通知", "股东大会的通知", "社会责任", "内部控制评价", "独立董事述职"]
+        },
+        "_aihot": { "initialBackfillLimit": 8 }
+      },
+      "tier": "T1",
+      "participation_mode": "editorial",
+      "interval_minutes": 60,
+      "tags": ["官方", "券商", "公告"],
+      "site_fulltext": false,
+      "syndicate_fulltext": false
+    },
+    {
+      "id": "web-stcn-kx",
+      "name": "证券时报 · 快讯",
+      "kind": "json_list",
+      "config": {
+        "url": "https://www.stcn.com/article/list.html?type=kx&page=1&page_size=30",
+        "mode": "json_api",
+        "headers": { "X-Requested-With": "XMLHttpRequest", "Referer": "https://www.stcn.com/article/list/kx.html" },
+        "itemsPath": "data",
+        "titlePaths": ["title"],
+        "summaryPaths": ["content"],
+        "publishedAtPath": "time",
+        "publishedAtUnit": "epoch_ms",
+        "externalIdPath": "id",
+        "urlTemplate": "https://www.stcn.com{raw:url}",
+        "_aihot": { "initialBackfillLimit": 8 }
+      },
+      "tier": "T2",
+      "participation_mode": "editorial",
+      "interval_minutes": 30,
+      "tags": ["媒体"],
+      "site_fulltext": false,
+      "syndicate_fulltext": false
+    },
+    {
+      "id": "web-yicai-jinrong",
+      "name": "第一财经 · 金融",
+      "kind": "json_list",
+      "config": {
+        "url": "https://www.yicai.com/news/jinrong/",
+        "mode": "html_window_var",
+        "windowVar": "firstlist",
+        "titlePaths": ["NewsTitle"],
+        "summaryPaths": ["NewsNotes"],
+        "publishedAtPath": "CreateDate",
+        "externalIdPath": "NewsID",
+        "urlTemplate": "https://www.yicai.com/news/{NewsID}.html",
+        "_aihot": { "initialBackfillLimit": 8 }
+      },
+      "tier": "T2",
+      "participation_mode": "editorial",
+      "interval_minutes": 30,
+      "tags": ["媒体"],
+      "site_fulltext": false,
+      "syndicate_fulltext": false
+    },
+    {
+      "id": "web-caixin-finance",
+      "name": "财新 · 金融频道",
+      "kind": "web_list",
+      "config": {
+        "url": "https://finance.caixin.com/",
+        "parseMode": "html",
+        "itemSelector": "a",
+        "linkSelector": "a",
+        "titleSelector": "a",
+        "allowUrlPrefixes": ["https://finance.caixin.com/20"],
+        "publishedAfter": "2026-07-01T00:00:00Z",
+        "detail": { "maxFetches": 16, "publishedAtSelector": "#pubtime_baidu" },
+        "_aihot": { "initialBackfillLimit": 8 }
+      },
+      "tier": "T2",
+      "participation_mode": "editorial",
+      "interval_minutes": 60,
+      "tags": ["媒体"],
+      "site_fulltext": false,
+      "syndicate_fulltext": false
+    },
+    {
+      "id": "web-cs-qs",
+      "name": "中国证券报 · 券商",
+      "kind": "web_list",
+      "config": {
+        "url": "https://www.cs.com.cn/",
+        "parseMode": "html",
+        "itemSelector": "a",
+        "linkSelector": "a",
+        "titleSelector": "a",
+        "allowUrlPrefixes": ["https://www.cs.com.cn/qs/"],
+        "detail": { "maxFetches": 12, "publishedAtSelector": ".artc_info time" },
+        "_aihot": { "initialBackfillLimit": 8 }
+      },
+      "tier": "T2",
+      "participation_mode": "editorial",
+      "interval_minutes": 60,
+      "tags": ["媒体"],
+      "site_fulltext": false,
+      "syndicate_fulltext": false
+    },
+    {
+      "id": "mp-citics-main",
+      "name": "中信证券（公众号）",
+      "kind": "mp_account",
+      "config": { "wxid": "Citics95548", "nickname": "中信证券", "publisherRole": "organization" },
+      "tier": "T1_5",
+      "owner_entity_id": "citics",
+      "participation_mode": "editorial",
+      "interval_minutes": 360,
+      "tags": ["官方", "券商公众号"],
+      "site_fulltext": false,
+      "syndicate_fulltext": false,
+      "enabled": false
+    },
+    {
+      "id": "mp-citics-research",
+      "name": "中信证券研究（公众号）",
+      "kind": "mp_account",
+      "config": { "nickname": "中信证券研究" },
+      "tier": "T2",
+      "owner_entity_id": "citics",
+      "participation_mode": "editorial",
+      "interval_minutes": 720,
+      "tags": ["券商公众号", "研究"],
+      "site_fulltext": false,
+      "syndicate_fulltext": false,
+      "enabled": false
+    },
+    {
+      "id": "mp-cmschina-main",
+      "name": "招商证券（公众号）",
+      "kind": "mp_account",
+      "config": { "nickname": "招商证券", "publisherRole": "organization" },
+      "tier": "T1_5",
+      "owner_entity_id": "cmschina",
+      "participation_mode": "editorial",
+      "interval_minutes": 360,
+      "tags": ["官方", "券商公众号"],
+      "site_fulltext": false,
+      "syndicate_fulltext": false,
+      "enabled": false
+    },
+    {
+      "id": "mp-cmschina-edu",
+      "name": "招商证券投教基地（公众号）",
+      "kind": "mp_account",
+      "config": { "nickname": "招商证券投教基地" },
+      "tier": "T2",
+      "owner_entity_id": "cmschina",
+      "participation_mode": "editorial",
+      "interval_minutes": 720,
+      "tags": ["券商公众号", "投教"],
+      "site_fulltext": false,
+      "syndicate_fulltext": false,
+      "enabled": false
+    },
+    {
+      "id": "mp-cmschina-wealth",
+      "name": "招商证券智远理财（公众号）",
+      "kind": "mp_account",
+      "config": { "nickname": "招商证券智远理财" },
+      "tier": "T2",
+      "owner_entity_id": "cmschina",
+      "participation_mode": "editorial",
+      "interval_minutes": 720,
+      "tags": ["券商公众号", "理财"],
+      "site_fulltext": false,
+      "syndicate_fulltext": false,
+      "enabled": false
+    },
+    {
+      "id": "mp-cmschina-research",
+      "name": "招商研究（公众号）",
+      "kind": "mp_account",
+      "config": { "nickname": "招商研究" },
+      "tier": "T2",
+      "owner_entity_id": "cmschina",
+      "participation_mode": "editorial",
+      "interval_minutes": 720,
+      "tags": ["券商公众号", "研究"],
+      "site_fulltext": false,
+      "syndicate_fulltext": false,
+      "enabled": false
+    },
+    {
+      "id": "mp-htsc-am",
+      "name": "华泰证券资管（公众号）",
+      "kind": "mp_account",
+      "config": { "wxid": "htsc-am", "nickname": "华泰证券资产管理", "publisherRole": "organization" },
+      "tier": "T1_5",
+      "owner_entity_id": "htsc",
+      "participation_mode": "editorial",
+      "interval_minutes": 360,
+      "tags": ["官方", "券商公众号"],
+      "site_fulltext": false,
+      "syndicate_fulltext": false,
+      "enabled": false
+    },
+    {
+      "id": "mp-pingan-main",
+      "name": "平安证券（公众号）",
+      "kind": "mp_account",
+      "config": { "nickname": "平安证券", "publisherRole": "organization" },
+      "tier": "T1_5",
+      "owner_entity_id": "pingan",
+      "participation_mode": "editorial",
+      "interval_minutes": 360,
+      "tags": ["官方", "券商公众号"],
+      "site_fulltext": false,
+      "syndicate_fulltext": false,
+      "enabled": false
+    },
+    {
+      "id": "mp-swhy-main",
+      "name": "申万宏源证券（公众号）",
+      "kind": "mp_account",
+      "config": { "wxid": "swhysc95523", "nickname": "申万宏源证券", "publisherRole": "organization" },
+      "tier": "T1_5",
+      "owner_entity_id": "swhy",
+      "participation_mode": "editorial",
+      "interval_minutes": 360,
+      "tags": ["官方", "券商公众号"],
+      "site_fulltext": false,
+      "syndicate_fulltext": false,
+      "enabled": false
+    },
+    {
+      "id": "mp-swhy-wealth",
+      "name": "申万宏源财富管理（公众号）",
+      "kind": "mp_account",
+      "config": { "wxid": "swhy95523", "nickname": "申万宏源财富管理" },
+      "tier": "T2",
+      "owner_entity_id": "swhy",
+      "participation_mode": "editorial",
+      "interval_minutes": 720,
+      "tags": ["券商公众号", "理财"],
+      "site_fulltext": false,
+      "syndicate_fulltext": false,
+      "enabled": false
+    },
+    {
+      "id": "mp-sdic-sec",
+      "name": "国投证券（公众号）",
+      "kind": "mp_account",
+      "config": { "wxid": "axzx98", "nickname": "国投证券", "publisherRole": "organization" },
+      "tier": "T1_5",
+      "owner_entity_id": "sdic-sec",
+      "participation_mode": "editorial",
+      "interval_minutes": 360,
+      "tags": ["官方", "券商公众号"],
+      "site_fulltext": false,
+      "syndicate_fulltext": false,
+      "enabled": false
+    },
+    {
+      "id": "mp-cjsc-main",
+      "name": "长江证券（公众号）",
+      "kind": "mp_account",
+      "config": { "nickname": "长江证券", "publisherRole": "organization" },
+      "tier": "T1_5",
+      "owner_entity_id": "cjsc",
+      "participation_mode": "editorial",
+      "interval_minutes": 360,
+      "tags": ["官方", "券商公众号"],
+      "site_fulltext": false,
+      "syndicate_fulltext": false,
+      "enabled": false
+    },
+    {
+      "id": "mp-cjsc-wealth",
+      "name": "长江证券财富管理（公众号）",
+      "kind": "mp_account",
+      "config": { "nickname": "长江证券财富管理" },
+      "tier": "T2",
+      "owner_entity_id": "cjsc",
+      "participation_mode": "editorial",
+      "interval_minutes": 720,
+      "tags": ["券商公众号", "理财"],
+      "site_fulltext": false,
+      "syndicate_fulltext": false,
+      "enabled": false
+    },
+    {
+      "id": "mp-cjsc-culture",
+      "name": "长江证券文化在线（公众号）",
+      "kind": "mp_account",
+      "config": { "nickname": "长江证券文化在线" },
+      "tier": "T2",
+      "owner_entity_id": "cjsc",
+      "participation_mode": "editorial",
+      "interval_minutes": 720,
+      "tags": ["券商公众号"],
+      "site_fulltext": false,
+      "syndicate_fulltext": false,
+      "enabled": false
+    },
+    {
+      "id": "mp-cjsc-edu",
+      "name": "长江证券投教基地（公众号）",
+      "kind": "mp_account",
+      "config": { "nickname": "长江证券投教基地" },
+      "tier": "T2",
+      "owner_entity_id": "cjsc",
+      "participation_mode": "editorial",
+      "interval_minutes": 720,
+      "tags": ["券商公众号", "投教"],
+      "site_fulltext": false,
+      "syndicate_fulltext": false,
+      "enabled": false
+    },
+    {
+      "id": "mp-cjsc-investor-edu",
+      "name": "长江证券投资者教育基地（公众号）",
+      "kind": "mp_account",
+      "config": { "nickname": "长江证券投资者教育基地" },
+      "tier": "T2",
+      "owner_entity_id": "cjsc",
+      "participation_mode": "editorial",
+      "interval_minutes": 720,
+      "tags": ["券商公众号", "投教"],
+      "site_fulltext": false,
+      "syndicate_fulltext": false,
+      "enabled": false
+    },
+    {
+      "id": "mp-ebscn-main",
+      "name": "光大证券（公众号）",
+      "kind": "mp_account",
+      "config": { "wxid": "ebscn-95525", "nickname": "光大证券", "publisherRole": "organization" },
+      "tier": "T1_5",
+      "owner_entity_id": "everbright",
+      "participation_mode": "editorial",
+      "interval_minutes": 360,
+      "tags": ["官方", "券商公众号"],
+      "site_fulltext": false,
+      "syndicate_fulltext": false,
+      "enabled": false
+    },
+    {
+      "id": "mp-ebscn-info",
+      "name": "光大证券微资讯（公众号）",
+      "kind": "mp_account",
+      "config": { "wxid": "ebscn-info", "nickname": "光大证券微资讯" },
+      "tier": "T2",
+      "owner_entity_id": "everbright",
+      "participation_mode": "editorial",
+      "interval_minutes": 720,
+      "tags": ["券商公众号"],
+      "site_fulltext": false,
+      "syndicate_fulltext": false,
+      "enabled": false
+    },
+    {
+      "id": "mp-gf-main",
+      "name": "广发证券（公众号）",
+      "kind": "mp_account",
+      "config": { "wxid": "gf95575", "nickname": "广发证券", "publisherRole": "organization" },
+      "tier": "T1_5",
+      "owner_entity_id": "gf",
+      "participation_mode": "editorial",
+      "interval_minutes": 360,
+      "tags": ["官方", "券商公众号"],
+      "site_fulltext": false,
+      "syndicate_fulltext": false,
+      "enabled": false
+    },
+    {
+      "id": "mp-eastmoney-sec",
+      "name": "东方财富证券（公众号）",
+      "kind": "mp_account",
+      "config": { "nickname": "东方财富证券", "publisherRole": "organization" },
+      "tier": "T1_5",
+      "owner_entity_id": "eastmoney-sec",
+      "participation_mode": "editorial",
+      "interval_minutes": 360,
+      "tags": ["官方", "券商公众号"],
+      "site_fulltext": false,
+      "syndicate_fulltext": false,
+      "enabled": false
+    },
+    {
+      "id": "mp-gtht-junhong",
+      "name": "国泰海通君弘（公众号）",
+      "kind": "mp_account",
+      "config": { "nickname": "国泰海通君弘", "publisherRole": "organization" },
+      "tier": "T1_5",
+      "owner_entity_id": "gtht",
+      "participation_mode": "editorial",
+      "interval_minutes": 360,
+      "tags": ["官方", "券商公众号"],
+      "site_fulltext": false,
+      "syndicate_fulltext": false,
+      "enabled": false
+    },
+    {
+      "id": "mp-gtht-institution",
+      "name": "国泰海通专业投资者服务平台（公众号）",
+      "kind": "mp_account",
+      "config": { "nickname": "国泰海通专业投资者服务平台" },
+      "tier": "T2",
+      "owner_entity_id": "gtht",
+      "participation_mode": "editorial",
+      "interval_minutes": 720,
+      "tags": ["券商公众号"],
+      "site_fulltext": false,
+      "syndicate_fulltext": false,
+      "enabled": false
     }
   ]
 }
