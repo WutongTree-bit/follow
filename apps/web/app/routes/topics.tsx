@@ -1,4 +1,5 @@
 import { useLoaderData } from "react-router";
+import { useState } from "react";
 import { SITE, subjectAfter, withSubject } from "@aihot/site";
 import type { Route } from "./+types/topics";
 import type { TopicSummary, TopicsResponse } from "@aihot/contracts/site";
@@ -8,6 +9,7 @@ import { breadcrumbLd, pageMeta, siteUrl } from "../lib/seo";
 import { relativeTime } from "../lib/format";
 import { IconChevronRight } from "../components/icons";
 import { IntentLink } from "../components/ui/IntentLink";
+import { PillTabs } from "../components/ui/Tabs";
 import { BrandMark } from "../components/BrandMark";
 import { PhoneBar } from "../components/shell/PhoneBar";
 import { navUp } from "../components/shell/nav";
@@ -98,6 +100,8 @@ function TopicCard({ t }: { t: TopicSummary }) {
 
 export default function TopicsPage() {
   const { groups, topics } = useLoaderData<typeof loader>();
+  const [selectedGroup, setSelectedGroup] = useState<string | null>(null);
+  const activeGroup = groups.find((g) => g.key === selectedGroup)?.key ?? groups[0]?.key ?? "";
   return (
     <div className="pb-10">
       <PhoneBar back={{ to: "/more", label: "我的" }} title="主题" />
@@ -108,8 +112,17 @@ export default function TopicsPage() {
           <span className="num">{topics.length}</span> 个主题，追踪最新精选与重要进展。
         </p>
       </header>
+      <PillTabs
+        items={groups.map((g) => ({ key: g.key, label: g.name }))}
+        active={activeGroup}
+        onSelect={setSelectedGroup}
+        layoutId="topics-groups"
+        label="主题分组"
+        size="xs"
+        className="mt-5"
+      />
       {groups.map((g) => (
-        <section key={g.key} aria-labelledby={`topics-${g.key}`} className="pt-8">
+        <section key={g.key} role="tabpanel" aria-labelledby={`topics-${g.key}`} hidden={g.key !== activeGroup} className="pt-5">
           <div className="flex flex-wrap items-baseline gap-x-3 gap-y-0.5">
             <h2 id={`topics-${g.key}`} className="text-[15px] font-bold text-ink">
               {g.name}

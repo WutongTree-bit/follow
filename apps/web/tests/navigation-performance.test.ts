@@ -38,7 +38,10 @@ const api=fakeApi((url,res,req)=>{
   hits.push(req.url!);
   if(p===failing){res.statusCode=503;return {code:'unavailable'};}
   if(p==='/api/site/search/suggestions')return {topics:[{slug:'citics',name:'中信证券',group:'company'}],hot:[{rank:1,title:'建议版本 '+suggestionsVersion,to:'/story/fixture'}]};
-  if(p==='/api/site/topics')return {groups:[],topics:[{slug:'citics',name:'中信证券',group:'company',definition:'Fixture',brand:null,total:0,recent:0,indexable:false,latest:null}]};
+  if(p==='/api/site/topics')return {
+    groups:[{key:'company',name:'券商公司',blurb:'公司动态'},{key:'field',name:'业务与主题',blurb:'业务进展'},{key:'genre',name:'内容类型',blurb:'按类型浏览'}],
+    topics:[['citics','中信证券','company'],['mna','并购重组','field'],['research','研究报告','genre']].map(([slug,name,group])=>({slug,name,group,definition:'Fixture',brand:null,total:0,recent:0,indexable:false,latest:null})),
+  };
   if(p==='/api/site/hot')return {computedAt:at,windowHours:48,entries:[{rank:1,story:{publicId:'fixture',title:'建议版本 '+suggestionsVersion},heat:10,trend:'flat',trendPct:0,badges:[],participantCount:0,sourceCount:0,sourceNames:[],participants:[],spark:[],summary:null,latest:null,cover:null}]};
   if(p==='/api/site/timeline'){
     res.setHeader('X-Accel-Expires','@'+(Math.floor(Date.now()/1000)+ttl));
@@ -79,6 +82,31 @@ after(async()=>{
 
 // One engine per behaviour: WebKit for what phone readers do (iPhone Safari), Chromium for desktop-only
 // pointer behaviour such as hover and mouse presses. The router and caches are the same code in both.
+test('topic groups switch tabs without fetching again and preserve topic links',async()=>{
+  const context=await chrome.newContext({viewport:{width:375,height:812}});
+  const page=await context.newPage();
+  try{
+    await visit(page,origin+'/topics');
+    const tabs=page.getByRole('tablist',{name:'主题分组'});
+    await expect(tabs.getByRole('tab')).toHaveCount(3);
+    await expect(tabs.getByRole('tab',{name:'券商公司',exact:true})).toHaveAttribute('aria-selected','true');
+    await expect(page.getByRole('tabpanel')).toHaveCount(1);
+    await expect(page.getByRole('link',{name:'中信证券',exact:false})).toHaveAttribute('href','/topics/citics');
+    const start=hits.filter(h=>h==='/api/site/topics').length;
+    await tabs.getByRole('tab',{name:'业务与主题',exact:true}).click();
+    await expect(page.getByRole('link',{name:'中信证券',exact:false})).not.toBeVisible();
+    await expect(page.getByRole('link',{name:'并购重组',exact:false})).toHaveAttribute('href','/topics/mna');
+    const genre=tabs.getByRole('tab',{name:'内容类型',exact:true});
+    await genre.focus();await page.keyboard.press('Enter');
+    await expect(genre).toHaveAttribute('aria-selected','true');
+    await expect(page.getByRole('tabpanel')).toHaveCount(1);
+    await expect(page.getByRole('link',{name:'研究报告',exact:false})).toHaveAttribute('href','/topics/research');
+    await tabs.getByRole('tab',{name:'券商公司',exact:true}).click();
+    await expect(page.getByRole('link',{name:'中信证券',exact:false})).toBeVisible();
+    assert.equal(hits.filter(h=>h==='/api/site/topics').length,start);
+  }finally{await context.close();}
+});
+
 test('SSR list and visited query variants return offline without another read',async()=>{
   const context=await safari.newContext({viewport:{width:390,height:844}});
   const page=await context.newPage();
