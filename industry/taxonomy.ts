@@ -2,6 +2,8 @@
 // 模型按这里的词表打标签，主题页（topics.json）按标签归类，筛选栏按类别分组。
 // 换行业时：类别的 key 会出现在网址里（/all?category=…），上线后就不要再改；标签和名录可以随时增减。
 
+import { OTHER_BROKERS } from "./brokers.ts";
+
 /**
  * 网页上的类别（筛选栏、卡片角标、RSS 分类订阅）。key 是网址和接口里的身份，上线后不要改。
  * section 是日报里的分节标题（几个类别可以共用一节，按这里的顺序排）；guide 告诉结构抽取模型这一类收什么、
@@ -96,34 +98,43 @@ export const TAG_SYNONYMS: Readonly<Record<string, string>> = {
  * aliases 给结构抽取模型看；orgNames 是这家公司发消息时开头用的组织名（公司、实验室、团队），
  * 在它自己的主题页上读者知道说的是谁，可以省去；otherNames 是公司的其他称呼（官方账号名、子品牌）。
  * 所有这些名字都用来认出说的是哪家公司，比如把事实的主体对到发布方。
+ * 头部券商写在这里；其余国内券商在 brokers.ts，由下面的 BROKER_ENTITIES 并进来。
  */
-export const ENTITIES: Record<string, { name: string; displayTag: string | null; aliases: string[]; orgNames?: string[]; otherNames?: string[] }> = {
-  citics: { name: "中信证券", displayTag: "中信证券", aliases: ["中信证券", "CITIC Securities"], orgNames: ["中信证券"], otherNames: ["中信证券研究", "中信证券财富管理", "中信证券投教基地"] },
+type Entity = { name: string; displayTag: string | null; aliases: string[]; orgNames?: string[]; otherNames?: string[] };
+
+const escapeRe = (s: string) => s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+
+const BROKER_ENTITIES: Record<string, Entity> = Object.fromEntries(
+  OTHER_BROKERS.map((b) => [b.id, { name: b.name, displayTag: null, aliases: [b.name, ...(b.aliases ?? [])], orgNames: [b.name], ...(b.otherNames ? { otherNames: [...b.otherNames] } : {}) }]),
+);
+
+export const ENTITIES: Record<string, Entity> = {
+  citics: { name: "中信证券", displayTag: "中信证券", aliases: ["中信证券", "CITIC Securities"], orgNames: ["中信证券"], otherNames: ["中信证券研究", "中信证券财富管理", "中信证券投教基地", "中信证券资产管理", "中信证券（山东）", "中信证券华南"] },
   csc: { name: "中信建投证券", displayTag: "中信建投", aliases: ["中信建投证券", "中信建投"], orgNames: ["中信建投证券", "中信建投"], otherNames: ["中信建投期货"] },
-  gtht: { name: "国泰海通", displayTag: "国泰海通", aliases: ["国泰海通", "国泰海通证券", "国泰君安", "国泰君安证券", "海通证券"], orgNames: ["国泰海通", "国泰君安", "海通证券"], otherNames: ["国泰海通君弘", "君弘", "国泰君安君弘"] },
-  htsc: { name: "华泰证券", displayTag: "华泰证券", aliases: ["华泰证券"], orgNames: ["华泰证券", "华泰"], otherNames: ["华泰联合证券", "华泰证券资管", "华泰证券资产管理", "华泰资管", "华泰柏瑞"] },
-  cicc: { name: "中金公司", displayTag: "中金公司", aliases: ["中金公司", "中国国际金融", "中金"], orgNames: ["中金公司", "中金"], otherNames: ["中金财富", "中金财富证券", "中金研究院"] },
-  cmschina: { name: "招商证券", displayTag: "招商证券", aliases: ["招商证券"], orgNames: ["招商证券"], otherNames: ["招商研究", "招商证券投教基地", "招商证券智远理财", "智远理财"] },
-  gf: { name: "广发证券", displayTag: "广发证券", aliases: ["广发证券"], orgNames: ["广发证券"], otherNames: ["广发证券95575"] },
-  swhy: { name: "申万宏源", displayTag: "申万宏源", aliases: ["申万宏源", "申万宏源证券", "申万宏源集团"], orgNames: ["申万宏源", "申万宏源证券"], otherNames: ["申万宏源财富管理", "申万宏源承销保荐", "申万研究"] },
-  galaxy: { name: "中国银河证券", displayTag: "中国银河", aliases: ["中国银河证券", "银河证券", "中国银河"], orgNames: ["中国银河证券", "中国银河", "银河证券"] },
+  gtht: { name: "国泰海通", displayTag: "国泰海通", aliases: ["国泰海通", "国泰海通证券", "国泰君安", "国泰君安证券", "海通证券"], orgNames: ["国泰海通", "国泰君安", "海通证券"], otherNames: ["国泰海通君弘", "君弘", "国泰君安君弘", "上海国泰君安证券资产管理", "上海海通证券资产管理", "国泰君安资管", "海通资管"] },
+  htsc: { name: "华泰证券", displayTag: "华泰证券", aliases: ["华泰证券"], orgNames: ["华泰证券", "华泰"], otherNames: ["华泰联合证券", "华泰证券资管", "华泰证券资产管理", "华泰证券（上海）资产管理", "华泰资管", "华泰柏瑞"] },
+  cicc: { name: "中金公司", displayTag: "中金公司", aliases: ["中金公司", "中国国际金融", "中金"], orgNames: ["中金公司", "中金"], otherNames: ["中金财富", "中金财富证券", "中国中金财富证券", "中金研究院"] },
+  cmschina: { name: "招商证券", displayTag: "招商证券", aliases: ["招商证券"], orgNames: ["招商证券"],   otherNames: ["招商研究", "招商证券投教基地", "招商证券智远理财", "智远理财", "招商证券资产管理", "招商资管"] },
+    gf: { name: "广发证券", displayTag: "广发证券", aliases: ["广发证券"], orgNames: ["广发证券"], otherNames: ["广发证券95575", "广发证券资产管理（广东）", "广发资管"] },
+    swhy: { name: "申万宏源", displayTag: "申万宏源", aliases: ["申万宏源", "申万宏源证券", "申万宏源集团"], orgNames: ["申万宏源", "申万宏源证券"], otherNames: ["申万宏源财富管理", "申万宏源承销保荐", "申万宏源证券承销保荐", "申万宏源证券资产管理", "申万宏源西部证券", "申万研究"] },
+    galaxy: { name: "中国银河证券", displayTag: "中国银河", aliases: ["中国银河证券", "银河证券", "中国银河"], orgNames: ["中国银河证券", "中国银河", "银河证券"], otherNames: ["银河金汇证券资产管理", "银河金汇"] },
   guosen: { name: "国信证券", displayTag: "国信证券", aliases: ["国信证券"], orgNames: ["国信证券"] },
   "eastmoney-sec": { name: "东方财富证券", displayTag: "东方财富证券", aliases: ["东方财富证券", "东财证券"], orgNames: ["东方财富证券"], otherNames: ["东方财富"] },
-  orient: { name: "东方证券", displayTag: "东方证券", aliases: ["东方证券"], orgNames: ["东方证券"], otherNames: ["东证资管", "东方证券资管"] },
-  everbright: { name: "光大证券", displayTag: null, aliases: ["光大证券"], orgNames: ["光大证券"], otherNames: ["光大证券微资讯"] },
+  orient: { name: "东方证券", displayTag: "东方证券", aliases: ["东方证券"], orgNames: ["东方证券"],   otherNames: ["东证资管", "东方证券资管", "东方证券承销保荐", "上海东方证券资产管理", "东证融汇证券资产管理", "东证融汇"] },
+    everbright: { name: "光大证券", displayTag: null, aliases: ["光大证券"], orgNames: ["光大证券"], otherNames: ["光大证券微资讯", "上海光大证券资产管理", "光证资管"] },
   pingan: { name: "平安证券", displayTag: null, aliases: ["平安证券"], orgNames: ["平安证券"] },
-  cjsc: { name: "长江证券", displayTag: null, aliases: ["长江证券"], orgNames: ["长江证券"], otherNames: ["长江证券财富管理", "长江证券文化在线", "长江证券投教基地"] },
-  "sdic-sec": { name: "国投证券", displayTag: null, aliases: ["国投证券", "安信证券"], orgNames: ["国投证券", "安信证券"] },
+    cjsc: { name: "长江证券", displayTag: null, aliases: ["长江证券"], orgNames: ["长江证券"], otherNames: ["长江证券财富管理", "长江证券文化在线", "长江证券投教基地", "长江证券承销保荐", "长江证券（上海）资产管理", "长江资管"] },
+    "sdic-sec": { name: "国投证券", displayTag: null, aliases: ["国投证券", "安信证券"], orgNames: ["国投证券", "安信证券"], otherNames: ["安信证券资产管理", "安信资管"] },
   glms: { name: "国联民生", displayTag: null, aliases: ["国联民生", "国联民生证券", "国联证券", "民生证券"], orgNames: ["国联民生", "国联证券", "民生证券"] },
-  sinolink: { name: "国金证券", displayTag: null, aliases: ["国金证券"], orgNames: ["国金证券"] },
+  sinolink: { name: "国金证券", displayTag: null, aliases: ["国金证券"], orgNames: ["国金证券"], otherNames: ["国金证券资产管理", "国金资管"] },
   soochow: { name: "东吴证券", displayTag: null, aliases: ["东吴证券"], orgNames: ["东吴证券"] },
-  founder: { name: "方正证券", displayTag: null, aliases: ["方正证券"], orgNames: ["方正证券"] },
-  xyzq: { name: "兴业证券", displayTag: null, aliases: ["兴业证券"], orgNames: ["兴业证券"] },
-  zszq: { name: "中泰证券", displayTag: null, aliases: ["中泰证券"], orgNames: ["中泰证券"] },
-  zheshang: { name: "浙商证券", displayTag: null, aliases: ["浙商证券"], orgNames: ["浙商证券"] },
+  founder: { name: "方正证券", displayTag: null, aliases: ["方正证券"], orgNames: ["方正证券"], otherNames: ["方正证券承销保荐"] },
+  xyzq: { name: "兴业证券", displayTag: null, aliases: ["兴业证券"], orgNames: ["兴业证券"], otherNames: ["兴证证券资产管理", "兴证资管", "兴证证券"] },
+  zszq: { name: "中泰证券", displayTag: null, aliases: ["中泰证券"], orgNames: ["中泰证券"], otherNames: ["中泰证券（上海）资产管理", "中泰资管"] },
+  zheshang: { name: "浙商证券", displayTag: null, aliases: ["浙商证券"], orgNames: ["浙商证券"], otherNames: ["浙江浙商证券资产管理", "浙商资管"] },
   cgws: { name: "长城证券", displayTag: null, aliases: ["长城证券"], orgNames: ["长城证券"] },
-  ctsec: { name: "财通证券", displayTag: null, aliases: ["财通证券"], orgNames: ["财通证券"] },
-  tfzq: { name: "天风证券", displayTag: null, aliases: ["天风证券"], orgNames: ["天风证券"] },
+  ctsec: { name: "财通证券", displayTag: null, aliases: ["财通证券"], orgNames: ["财通证券"], otherNames: ["财通证券资产管理", "财通资管"] },
+  tfzq: { name: "天风证券", displayTag: null, aliases: ["天风证券"], orgNames: ["天风证券"], otherNames: ["天风（上海）证券资产管理", "天风资管"] },
   hazq: { name: "华安证券", displayTag: null, aliases: ["华安证券"], orgNames: ["华安证券"] },
   gyzq: { name: "国元证券", displayTag: null, aliases: ["国元证券"], orgNames: ["国元证券"] },
   westsec: { name: "西部证券", displayTag: null, aliases: ["西部证券"], orgNames: ["西部证券"] },
@@ -134,6 +145,7 @@ export const ENTITIES: Record<string, { name: string; displayTag: string | null;
   sgsec: { name: "申港证券", displayTag: null, aliases: ["申港证券"], orgNames: ["申港证券"] },
   cxzq: { name: "财信证券", displayTag: null, aliases: ["财信证券"], orgNames: ["财信证券"] },
   "ubs-sec": { name: "瑞银证券", displayTag: null, aliases: ["瑞银证券"], orgNames: ["瑞银证券"] },
+  ...BROKER_ENTITIES,
 };
 
 /**
@@ -152,7 +164,7 @@ export const IDENTITY_LEXICON: ReadonlyArray<{ id: string; name: string; pattern
   { id: "galaxy", name: "中国银河证券", patterns: [/银河证券|中国银河/] },
   { id: "guosen", name: "国信证券", patterns: [/国信证券/] },
   { id: "eastmoney-sec", name: "东方财富证券", patterns: [/东方财富|东财证券/] },
-  { id: "orient", name: "东方证券", patterns: [/东方证券|东证资管/] },
+  { id: "orient", name: "东方证券", patterns: [/东方证券|东证资管|东证融汇/] },
   { id: "everbright", name: "光大证券", patterns: [/光大证券/] },
   { id: "pingan", name: "平安证券", patterns: [/平安证券/] },
   { id: "cjsc", name: "长江证券", patterns: [/长江证券/] },
@@ -161,7 +173,7 @@ export const IDENTITY_LEXICON: ReadonlyArray<{ id: string; name: string; pattern
   { id: "sinolink", name: "国金证券", patterns: [/国金证券/] },
   { id: "soochow", name: "东吴证券", patterns: [/东吴证券/] },
   { id: "founder", name: "方正证券", patterns: [/方正证券/] },
-  { id: "xyzq", name: "兴业证券", patterns: [/兴业证券/] },
+  { id: "xyzq", name: "兴业证券", patterns: [/兴业证券|兴证证券|兴证资管/] },
   { id: "zszq", name: "中泰证券", patterns: [/中泰证券/] },
   { id: "zheshang", name: "浙商证券", patterns: [/浙商证券/] },
   { id: "cgws", name: "长城证券", patterns: [/长城证券/] },
@@ -177,22 +189,52 @@ export const IDENTITY_LEXICON: ReadonlyArray<{ id: string; name: string; pattern
   { id: "sgsec", name: "申港证券", patterns: [/申港证券/] },
   { id: "cxzq", name: "财信证券", patterns: [/财信证券/] },
   { id: "ubs-sec", name: "瑞银证券", patterns: [/瑞银证券/] },
+  ...OTHER_BROKERS.map((b) => ({
+    id: b.id,
+    name: b.name,
+    patterns: [b.lexicon ?? new RegExp([b.name, ...(b.aliases ?? []), ...(b.otherNames ?? [])].map(escapeRe).join("|"))],
+  })),
 ];
 
 /** 这些域名上的文章，发布方就是对应的公司（托管平台、聚合站不算）。 */
 export const PUBLISHER_DOMAINS: ReadonlyArray<{ entityId: string; domains: readonly string[] }> = [
-  { entityId: "citics", domains: ["cs.ecitic.com"] },
+  { entityId: "citics", domains: ["cs.ecitic.com", "citics.com"] },
   { entityId: "csc", domains: ["csc108.com"] },
   { entityId: "gtht", domains: ["gtja.com", "htsec.com"] },
   { entityId: "htsc", domains: ["htsc.com.cn"] },
-  { entityId: "cicc", domains: ["cicc.com"] },
-  { entityId: "cmschina", domains: ["cmschina.com"] },
+  { entityId: "cicc", domains: ["cicc.com.cn", "ciccwm.com"] },
+  { entityId: "cmschina", domains: ["cmschina.com.cn", "cmschina.com"] },
   { entityId: "gf", domains: ["gf.com.cn"] },
   { entityId: "swhy", domains: ["swhysc.com"] },
   { entityId: "galaxy", domains: ["chinastock.com.cn"] },
-  { entityId: "guosen", domains: ["guosen.com.cn"] },
+  { entityId: "guosen", domains: ["guosen.com", "guosen.com.cn"] },
+  { entityId: "eastmoney-sec", domains: ["18.cn"] },
   { entityId: "orient", domains: ["dfzq.com.cn"] },
   { entityId: "everbright", domains: ["ebscn.com"] },
+  { entityId: "pingan", domains: ["stock.pingan.com"] },
+  { entityId: "cjsc", domains: ["95579.com"] },
+  { entityId: "sdic-sec", domains: ["essence.com.cn"] },
+  { entityId: "glms", domains: ["glsc.com.cn", "mszq.com"] },
+  { entityId: "sinolink", domains: ["gjzq.com.cn"] },
+  { entityId: "soochow", domains: ["dwzq.com.cn"] },
+  { entityId: "founder", domains: ["foundersc.com"] },
+  { entityId: "xyzq", domains: ["xyzq.com.cn"] },
+  { entityId: "zszq", domains: ["zts.com.cn"] },
+  { entityId: "zheshang", domains: ["stocke.com.cn"] },
+  { entityId: "cgws", domains: ["cgws.com"] },
+  { entityId: "ctsec", domains: ["ctsec.com"] },
+  { entityId: "tfzq", domains: ["tfzq.com"] },
+  { entityId: "hazq", domains: ["hazq.com"] },
+  { entityId: "gyzq", domains: ["gyzq.com.cn"] },
+  { entityId: "westsec", domains: ["westsecu.com"] },
+  { entityId: "kysec", domains: ["kysec.cn"] },
+  { entityId: "hxzq", domains: ["hx168.com.cn"] },
+  { entityId: "dxzq", domains: ["dxzq.net"] },
+  { entityId: "cindasc", domains: ["cindasc.com"] },
+  { entityId: "sgsec", domains: ["shgsec.com"] },
+  { entityId: "cxzq", domains: ["cfzq.com"] },
+  { entityId: "ubs-sec", domains: ["ubssecurities.com"] },
+  ...OTHER_BROKERS.filter((b) => b.domains).map((b) => ({ entityId: b.id, domains: b.domains! })),
 ];
 
 /** 原文里的这些写法也算提到了对应公司。 */
