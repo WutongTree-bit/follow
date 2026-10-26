@@ -20,14 +20,14 @@ export const EDITION_WHEN = {
 
 export const SITE = {
   /** 站名：导航、页面标题、分享图、RSS、MCP、后台都用它。 */
-  name: "券业观察",
+  name: "券业社",
   /**
    * 行业词：拼进默认说法里，比如“AI 日报”“AI 动态”。
    * 改成“法律”“HR”“黄金”之类，页面上就会变成“法律日报”“法律动态”。
    */
   subject: "券商",
   /** 首页的完整标题（浏览器标签、搜索结果）。 */
-  homeTitle: "券业观察 — 国内证券公司动态 · 每日精选与日报",
+  homeTitle: "券业社 — 国内证券公司动态 · 每日精选与日报",
   /** 主题目录页（/topics）的标题。 */
   topicsTitle: "券商主题：公司、并购牌照、监管处罚、业绩排名等的最新动态",
   /** 反馈表单输入框里的示例。 */
@@ -74,7 +74,7 @@ export const SITE = {
   github: null as string | null,
   /** 结构化数据里的网站运营者（搜索引擎用）。 */
   organization: {
-    name: "券业观察",
+    name: "券业社",
     /** 创始人（选填）。 */
     founder: null as Founder | null,
   },

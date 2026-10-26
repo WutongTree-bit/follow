@@ -12,7 +12,7 @@
 | `changelog.json` | 更新日志 |
 | `modules/` | 启用哪些模块：`index.ts`、`server.ts`、`web.ts` 三份清单，列出仓库根目录 `modules/<名字>/` 里要用的模块，默认都为空，见 [架构](../docs/architecture.md#模块) 的“模块” |
 
-## 券业观察品牌
+## 券业社品牌
 
 图标使用断开的观察镜头、三根数据柱和一个焦点，青色表示观察，珊瑚红表示重点。网页字标与静态图标共用 [`brand/mark.ts`](brand/mark.ts) 的图形；站名读取 [`site.ts`](site.ts)，栏目名和 MCP 前缀不随品牌改名。
 
