@@ -1,7 +1,8 @@
-// /brokers/:slug — one broker's 企业数据, 法律数据 and 标讯数据 from QCC, a tab each (?tab=).
+// /brokers/:slug — one broker's 相关动态 (its selected news) and its 企业数据, 法律数据 and 标讯数据 from QCC, a tab each (?tab=).
 import { useEffect, useState, type ReactNode } from "react";
 import { Link, useLoaderData, useSearchParams } from "react-router";
 import { SITE } from "@aihot/site";
+import type { TopicPage } from "@aihot/contracts/site";
 import { QCC_TABS, type QccBrokerPage, type QccTab } from "../../contract.ts";
 import { cachedPage, loadOr404 } from "../../../../apps/web/app/lib/api.server.ts";
 import { pageReuse } from "../../../../apps/web/app/lib/page-reuse.ts";
@@ -10,7 +11,8 @@ import { AsideCard, EmptyState, ReadingLayout } from "../../../../apps/web/app/c
 import { PillTabs } from "../../../../apps/web/app/components/ui/Tabs.tsx";
 import { BrandMark } from "../../../../apps/web/app/components/BrandMark.tsx";
 import { PhoneBar } from "../../../../apps/web/app/components/shell/PhoneBar.tsx";
-import { IconArrowLeft, IconChevronRight } from "../../../../apps/web/app/components/icons.tsx";
+import { DayList, Pagination } from "../../../../apps/web/app/features/feed/DayList.tsx";
+import { IconArrowLeft } from "../../../../apps/web/app/components/icons.tsx";
 import type { Screen } from "../../../../apps/web/app/components/shell/screens.ts";
 import { fullDateTime } from "../../../../apps/web/app/lib/format.ts";
 import { Block } from "../blocks.tsx";
@@ -21,12 +23,24 @@ export const handle: Screen = { home: "me" };
 export { pageHeaders as headers } from "../../../../apps/web/app/lib/api.server.ts";
 export const { clientLoader, shouldRevalidate } = pageReuse<typeof loader>();
 
+/** The page's first tab, the one it opens on, is the broker's news; the others are QCC's data. */
+type PageTab = "news" | QccTab;
+const tabOf = (asked: string | null): PageTab => (QCC_TABS.some((t) => t.key === asked) ? (asked as QccTab) : "news");
+
 export async function loader({ params, request }: { params: { slug?: string }; request: Request }) {
   const slug = params.slug ?? "";
   if (!/^[a-z0-9-]{1,64}$/.test(slug)) throw new Response("Not found", { status: 404 });
+  const query = new URL(request.url).searchParams;
+  // The news tab pages the topic's selected items (?page=), like the topic page; the other tabs do not read them.
+  const news = tabOf(query.get("tab")) === "news";
+  const pageNo = query.get("page") ?? "1";
+  if (news && (!/^\d{1,6}$/.test(pageNo) || Number(pageNo) < 1)) throw new Response("Not found", { status: 404 });
   const upstream = new Headers();
-  const data = await loadOr404<QccBrokerPage>(`/api/qcc/brokers/${slug}`, { signal: request.signal, responseHeaders: upstream });
-  return cachedPage(60, { data }, upstream);
+  const [data, topic] = await Promise.all([
+    loadOr404<QccBrokerPage>(`/api/qcc/brokers/${slug}`, { signal: request.signal, responseHeaders: upstream }),
+    news ? loadOr404<TopicPage>(`/api/site/topics/${slug}?page=${Number(pageNo)}`, { signal: request.signal }) : null,
+  ]);
+  return cachedPage(60, { data, topic }, upstream);
 }
 
 export function meta({ loaderData }: { loaderData?: { data: QccBrokerPage } }) {
@@ -111,16 +125,41 @@ function Status({ page }: { page: QccBrokerPage }) {
   return <Notice title="暂时没有数据">这次没有从企查查拿到数据，稍后再来看看。</Notice>;
 }
 
+/** The broker's selected news, a page of the topic's items. */
+function News({ topic }: { topic: TopicPage | null }) {
+  if (!topic) return null;
+  const { items, page, pageCount, pageSize, topic: info } = topic;
+  const first = (page - 1) * pageSize + 1;
+  const last = first + items.length - 1;
+  const href = (p: number) => (p <= 1 ? "." : `?page=${p}`);
+  return (
+    <>
+      {items.length === 0 ? (
+        <div className="lg:card">
+          <EmptyState title="这家券商暂时还没有精选内容" />
+        </div>
+      ) : (
+        <DayList items={items} headerAside={<span className="num whitespace-nowrap">第 {first}–{last} 条<span className="hidden sm:inline"> · 共 {info.total.toLocaleString("zh-CN")} 条</span></span>} />
+      )}
+      <Pagination page={page} pageCount={pageCount} href={href} />
+    </>
+  );
+}
+
 export default function BrokerRoute() {
-  const { data } = useLoaderData<typeof loader>();
+  const { data, topic } = useLoaderData<typeof loader>();
   const page = useLive(data);
   const { broker } = page;
   const [params] = useSearchParams();
-  const asked = params.get("tab");
-  const active: QccTab = QCC_TABS.some((t) => t.key === asked) ? (asked as QccTab) : "company";
-  const tab = page.tabs[active];
+  const active = tabOf(params.get("tab"));
+  const dataTab = active === "news" ? null : QCC_TABS.find((t) => t.key === active)!;
+  const blocks = dataTab ? page.tabs[dataTab.key].blocks : [];
   const hasData = QCC_TABS.some((t) => page.tabs[t.key].blocks.length);
   const fetchedAt = broker.fetchedAt;
+  const tabs = [
+    { key: "news" as const, label: "相关动态", blurb: `近 30 天精选 ${broker.recent} 条${broker.name}的新闻。`, count: null },
+    ...QCC_TABS.map((t) => ({ ...t, count: page.tabs[t.key].blocks.filter((b) => b.ok).length || null })),
+  ];
 
   const aside = (
     <>
@@ -132,10 +171,10 @@ export default function BrokerRoute() {
         </dl>
         <p className="mt-3 text-[12px] leading-relaxed text-ink-4">数据每 {page.cacheDays} 天更新一次，仅供参考，以登记机关、法院和交易所的公示为准。</p>
       </AsideCard>
-      {hasData && (
-        <AsideCard title={QCC_TABS.find((t) => t.key === active)!.label} className="hidden lg:block">
+      {dataTab && blocks.length > 0 && (
+        <AsideCard title={dataTab.label} className="hidden lg:block">
           <nav className="-mx-2 -mb-1" aria-label="本页内容">
-            {tab.blocks.map((b) => (
+            {blocks.map((b) => (
               <a key={b.key} href={`#b-${b.key}`} className="flex items-center justify-between rounded-control px-2 py-1.5 text-[13.5px] text-ink-2 transition-colors hover:bg-bg-sunk hover:text-ink">
                 {b.title}
                 {!b.ok && <span className="text-[11.5px] text-ink-4">无数据</span>}
@@ -144,12 +183,6 @@ export default function BrokerRoute() {
           </nav>
         </AsideCard>
       )}
-      <AsideCard title="相关动态">
-        <p className="text-[13px] leading-[1.75] text-ink-3">近 30 天精选 <span className="num font-semibold text-ink-2">{broker.recent}</span> 条{broker.name}的新闻。</p>
-        <Link to={`/topics/${broker.slug}`} className="mt-3 inline-flex items-center gap-1 text-[13px] font-medium text-accent hover:underline">
-          看最新动态 <IconChevronRight size={14} />
-        </Link>
-      </AsideCard>
     </>
   );
 
@@ -177,25 +210,22 @@ export default function BrokerRoute() {
             {broker.overview && <div className="mt-4"><OverviewTiles overview={broker.overview} /></div>}
           </header>
 
-          {!hasData ? <Status page={page} /> : (
-            <>
-              <div className="sticky top-[var(--bar-h)] z-10 -mx-1 mb-4 bg-bg/90 px-1 py-2 backdrop-blur lg:top-0">
-                <PillTabs
-                  layoutId="qcc-tabs"
-                  label="数据类别"
-                  fill
-                  className="sm:w-auto"
-                  active={active}
-                  items={QCC_TABS.map((t) => ({ key: t.key, label: t.label, to: t.key === "company" ? "." : `?tab=${t.key}`, replace: true, count: page.tabs[t.key].blocks.filter((b) => b.ok).length || null }))}
-                />
-              </div>
-              <p className="mb-4 text-[12.5px] text-ink-4">{QCC_TABS.find((t) => t.key === active)!.blurb}</p>
-              {tab.blocks.length ? (
-                <div className="space-y-4">{tab.blocks.map((b) => <Block key={`${active}:${b.key}`} block={b} />)}</div>
-              ) : (
-                <Notice title="这一类还没有数据">{page.refreshing ? "正在获取，稍等片刻。" : "稍后再来看看。"}</Notice>
-              )}
-            </>
+          {/* The day headers of the news list stick to the top too, so its tab bar scrolls away with the page. */}
+          <div className={`-mx-1 mb-4 px-1 py-2 ${active === "news" ? "" : "sticky top-[var(--bar-h)] z-10 bg-bg/90 backdrop-blur lg:top-0"}`}>
+            <PillTabs
+              layoutId="qcc-tabs"
+              label="数据类别"
+              fill
+              className="sm:w-auto"
+              active={active}
+              items={tabs.map((t, i) => ({ key: t.key, label: t.label, to: i === 0 ? "." : `?tab=${t.key}`, replace: true, count: t.count }))}
+            />
+          </div>
+          <p className="mb-4 text-[12.5px] text-ink-4">{tabs.find((t) => t.key === active)!.blurb}</p>
+          {active === "news" ? <News topic={topic} /> : !hasData ? <Status page={page} /> : blocks.length ? (
+            <div className="space-y-4">{blocks.map((b) => <Block key={`${active}:${b.key}`} block={b} />)}</div>
+          ) : (
+            <Notice title="这一类还没有数据">{page.refreshing ? "正在获取，稍等片刻。" : "稍后再来看看。"}</Notice>
           )}
         </div>
       </ReadingLayout>
