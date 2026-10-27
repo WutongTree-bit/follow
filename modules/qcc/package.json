@@ -1,0 +1,12 @@
+{
+  "name": "@aihot/qcc",
+  "private": true,
+  "type": "module",
+  "sideEffects": false,
+  "exports": {
+    "./module": "./module.ts",
+    "./server": "./server.ts",
+    "./web": "./web.tsx",
+    "./contract": "./contract.ts"
+  }
+}
