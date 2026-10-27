@@ -14,13 +14,20 @@ import { BrandMark } from "../components/BrandMark";
 import { PhoneBar } from "../components/shell/PhoneBar";
 import { navUp } from "../components/shell/nav";
 import type { Screen } from "../components/shell/screens";
+import { loadParts } from "../site-modules";
 
 export const handle: Screen = { home: navUp("/topics").tab, name: "主题" };
 export { pageHeaders as headers } from "../lib/api.server";
 export const { clientLoader, shouldRevalidate } = pageReuse<typeof loader>();
 
+const PARTS = await loadParts((m) => m.topicsGroup);
+
 export async function loader({ request }: { request: Request }) {
-  return cachedPage(300, await apiGet<TopicsResponse>("/api/site/topics", { signal: request.signal }));
+  const [topics, ...lists] = await Promise.all([
+    apiGet<TopicsResponse>("/api/site/topics", { signal: request.signal }),
+    ...PARTS.map(({ part }) => apiGet<unknown>(part.api, { signal: request.signal })),
+  ]);
+  return cachedPage(300, { ...topics, lists: Object.fromEntries(PARTS.map(({ name }, i) => [name, lists[i]])) });
 }
 
 export function meta({ loaderData }: Route.MetaArgs) {
@@ -99,7 +106,7 @@ function TopicCard({ t }: { t: TopicSummary }) {
 }
 
 export default function TopicsPage() {
-  const { groups, topics } = useLoaderData<typeof loader>();
+  const { groups, topics, lists } = useLoaderData<typeof loader>();
   const [selectedGroup, setSelectedGroup] = useState<string | null>(null);
   const activeGroup = groups.find((g) => g.key === selectedGroup)?.key ?? groups[0]?.key ?? "";
   return (
@@ -121,25 +128,34 @@ export default function TopicsPage() {
         size="xs"
         className="mt-5"
       />
-      {groups.map((g) => (
-        <section key={g.key} role="tabpanel" aria-labelledby={`topics-${g.key}`} hidden={g.key !== activeGroup} className="pt-5">
-          <div className="flex flex-wrap items-baseline gap-x-3 gap-y-0.5">
-            <h2 id={`topics-${g.key}`} className="text-[15px] font-bold text-ink">
-              {g.name}
-            </h2>
-            <p className="text-[12px] text-ink-4">{g.blurb}</p>
-          </div>
-          <ul className="mt-3 divide-y divide-line-soft overflow-hidden rounded-card border border-line bg-surface lg:mt-3.5 lg:grid lg:grid-cols-3 lg:gap-3 lg:divide-y-0 lg:overflow-visible lg:rounded-none lg:border-0 lg:bg-transparent xl:grid-cols-4">
-            {topics
-              .filter((t) => t.group === g.key)
-              .map((t) => (
-                <li key={t.slug}>
-                  <TopicCard t={t} />
-                </li>
-              ))}
-          </ul>
-        </section>
-      ))}
+      {groups.map((g) => {
+        const own = PARTS.find(({ part }) => part.group === g.key);
+        return (
+          <section key={g.key} role="tabpanel" aria-labelledby={`topics-${g.key}`} hidden={g.key !== activeGroup} className="pt-5">
+            <div className="flex flex-wrap items-baseline gap-x-3 gap-y-0.5">
+              <h2 id={`topics-${g.key}`} className="text-[15px] font-bold text-ink">
+                {g.name}
+              </h2>
+              <p className="text-[12px] text-ink-4">{g.blurb}</p>
+            </div>
+            {own ? (
+              <div className="mt-3 lg:mt-3.5">
+                <own.part.List data={lists[own.name]} />
+              </div>
+            ) : (
+              <ul className="mt-3 divide-y divide-line-soft overflow-hidden rounded-card border border-line bg-surface lg:mt-3.5 lg:grid lg:grid-cols-3 lg:gap-3 lg:divide-y-0 lg:overflow-visible lg:rounded-none lg:border-0 lg:bg-transparent xl:grid-cols-4">
+                {topics
+                  .filter((t) => t.group === g.key)
+                  .map((t) => (
+                    <li key={t.slug}>
+                      <TopicCard t={t} />
+                    </li>
+                  ))}
+              </ul>
+            )}
+          </section>
+        );
+      })}
     </div>
   );
 }

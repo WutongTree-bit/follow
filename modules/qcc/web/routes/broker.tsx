@@ -11,6 +11,7 @@ import { AsideCard, EmptyState, ReadingLayout } from "../../../../apps/web/app/c
 import { PillTabs } from "../../../../apps/web/app/components/ui/Tabs.tsx";
 import { BrandMark } from "../../../../apps/web/app/components/BrandMark.tsx";
 import { PhoneBar } from "../../../../apps/web/app/components/shell/PhoneBar.tsx";
+import { navUp } from "../../../../apps/web/app/components/shell/nav.ts";
 import { DayList, Pagination } from "../../../../apps/web/app/features/feed/DayList.tsx";
 import { IconArrowLeft } from "../../../../apps/web/app/components/icons.tsx";
 import type { Screen } from "../../../../apps/web/app/components/shell/screens.ts";
@@ -19,7 +20,9 @@ import { Block } from "../blocks.tsx";
 import { OverviewTiles } from "../Overview.tsx";
 import { QCC_SCOPE, stateTone, tag } from "../palette.ts";
 
-export const handle: Screen = { home: "me" };
+// The brokers are listed on the topics page, as long as the site shows it.
+const UP = navUp("/topics");
+export const handle: Screen = { home: UP.tab };
 export { pageHeaders as headers } from "../../../../apps/web/app/lib/api.server.ts";
 export const { clientLoader, shouldRevalidate } = pageReuse<typeof loader>();
 
@@ -51,7 +54,7 @@ export function meta({ loaderData }: { loaderData?: { data: QccBrokerPage } }) {
     title: `${broker.name}工商档案：企业、法律与标讯数据`,
     description: `${broker.registeredName ?? broker.name}的工商登记、股东高管、风险扫描、司法案例与招投标数据，来自企查查，${SITE.name}整理。`,
     path,
-    jsonLd: [breadcrumbLd([{ name: SITE.name, path: "/" }, { name: "券商档案", path: "/brokers" }, { name: broker.name, path }])],
+    jsonLd: [breadcrumbLd([{ name: SITE.name, path: "/" }, ...UP.crumbs, { name: broker.name, path }])],
   });
 }
 
@@ -188,10 +191,10 @@ export default function BrokerRoute() {
 
   return (
     <>
-      <PhoneBar back={{ to: "/brokers", label: "券商档案" }} title={broker.name} />
+      <PhoneBar back={{ to: UP.to, label: UP.back }} title={broker.name} />
       <ReadingLayout aside={aside}>
-        <Link to="/brokers" className="hidden items-center gap-1.5 py-2 text-[13px] text-ink-3 transition-colors hover:text-accent lg:inline-flex">
-          <IconArrowLeft size={14} /> 返回券商档案
+        <Link to={UP.to} className="hidden items-center gap-1.5 py-2 text-[13px] text-ink-3 transition-colors hover:text-accent lg:inline-flex">
+          <IconArrowLeft size={14} /> 返回{UP.back}
         </Link>
         <div className={QCC_SCOPE}>
           <header className="pb-5 pt-3 lg:pt-1">

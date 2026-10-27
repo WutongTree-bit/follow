@@ -151,8 +151,8 @@ export default function QccAdmin() {
   return (
     <AdminPage
       title="企查查 MCP"
-      subtitle={`券商档案（/brokers）的数据源。读者打开某家券商时，数据缺失或超过 ${o.cacheDays} 天才会排队重新拉取；工商主体需要先确认。`}
-      actions={<Link to="/brokers" className="text-[13px] text-accent hover:underline">查看券商档案 →</Link>}
+      subtitle={`券商档案的数据源，列在“主题”页的“券商公司”里。读者打开某家券商时，数据缺失或超过 ${o.cacheDays} 天才会排队重新拉取；工商主体需要先确认。`}
+      actions={<Link to="/topics" className="text-[13px] text-accent hover:underline">查看券商公司 →</Link>}
     >
       <ConfigCard o={o} />
 

@@ -6,7 +6,7 @@
 // page's code: the page waits for its parts while its own code loads (site-modules.ts `loadParts`) and then
 // renders them like any import.
 import type { ComponentType, ReactNode } from "react";
-import type { TopicSummary } from "@aihot/contracts/site";
+import type { TopicGroupKey, TopicSummary } from "@aihot/contracts/site";
 import type { NavItem, Tab } from "./components/shell/nav";
 
 export interface AdminNavEntry {
@@ -113,6 +113,14 @@ export interface TopicPagePart {
   news: (data: unknown) => string[];
 }
 
+/** A module's list for one topic group on the topics page (routes/topics.tsx), drawn in place of the engine's cards. */
+export interface TopicsGroupPart {
+  group: TopicGroupKey;
+  /** The api path its data is read from (public, JSON), in the page's loader, so the list is rendered with the page. */
+  api: string;
+  List: ComponentType<{ data: unknown }>;
+}
+
 export interface WebModule {
   /** Its folder under modules/. */
   name: string;
@@ -147,6 +155,7 @@ export interface WebModule {
   };
   agent?: Part<AgentPart>;
   topicPage?: Part<TopicPagePart>;
+  topicsGroup?: Part<TopicsGroupPart>;
   /** Paths of the marks it serves that are drawn in white, for a dark tile (components/BrandMark.tsx). */
   darkMarks?: string[];
   /** The starred page (routes/starred.tsx): buttons ahead of 导入文件 that bring stars in from elsewhere, each resolving to the line it reports. */
